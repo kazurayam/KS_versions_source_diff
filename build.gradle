@@ -1,5 +1,6 @@
 plugins {
     id "java"
+    id("com.kazurayam.compareDirectories") version "0.1.5"
 }
 
 ext {
@@ -21,4 +22,16 @@ tasks.register('unpackA', Copy) {
 tasks.register('unpackB', Copy) {
     from zipTree("src/main/resources/${versionB}/com.kms.katalon.core.webui/com.kms.katalon.core.webui-sources.jar")
     into layout.buildDirectory.dir("${workdir}/source/${versionB}")
+}
+
+task mkDiffDir {
+    doFirst {
+        mkdir layout.buildDirectory.dir("${workdir}/diff")
+    }
+}
+
+tasks.register("dircomp", com.kazurayam.dircomp.CompareDirectoriesTask) {
+    dirA = "build/${workdir}/source/8.4.1"
+    dirB = "build/${workdir}/source/8.6.0"
+    outputFile = "build/${workdir}/diff/${versionA}-${versionB}.json"
 }
