@@ -1,17 +1,12 @@
 plugins {
     id "java"
-    id("com.kazurayam.compareDirectories") version "0.1.5"
+    id "com.kazurayam.compareDirectories" version "0.1.6"
 }
 
 ext {
-    workdir = "diffout"
+    workdir = "versionsDiff"
     versionA = "8.4.1"
     versionB = "8.6.0"
-}
-
-task initialize() {
-    delete "$workdir"
-    mkdir "$workdir"
 }
 
 tasks.register('unpackA', Copy) {
@@ -24,14 +19,16 @@ tasks.register('unpackB', Copy) {
     into layout.buildDirectory.dir("${workdir}/source/${versionB}")
 }
 
-task mkDiffDir {
-    doFirst {
-        mkdir layout.buildDirectory.dir("${workdir}/diff")
-    }
+tasks.register("compareVersions", com.kazurayam.dircomp.CompareDirectoriesTask) {
+    dirA = layout.buildDirectory.dir("${workdir}/source/${versionA}")
+    dirB = layout.buildDirectory.dir("${workdir}/source/${versionB}")
+    outputFile = layout.buildDirectory.file("${workdir}/${versionA}-${versionB}.json")
+    diffDir = layout.buildDirectory.dir("${workdir}/diff")
 }
 
-tasks.register("dircomp", com.kazurayam.dircomp.CompareDirectoriesTask) {
-    dirA = "build/${workdir}/source/8.4.1"
-    dirB = "build/${workdir}/source/8.6.0"
-    outputFile = "build/${workdir}/diff/${versionA}-${versionB}.json"
+tasks.register("makeZip", Zip) {
+    from layout.buildDirectory.dir("${workdir}")
+    include '**/*'
+    archiveFileName = "KatalonStudio_versions_diff-${versionA}-${versionB}.zip"
+    destinationDirectory = layout.buildDirectory
 }
