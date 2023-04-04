@@ -11,20 +11,22 @@ ext {
 
 tasks.register('unpackA', Copy) {
     from zipTree("src/main/resources/${versionA}/com.kms.katalon.core.webui/com.kms.katalon.core.webui-sources.jar")
-    into layout.buildDirectory.dir("${workdir}/source/${versionA}")
+    into layout.buildDirectory.dir("source/${versionA}")
 }
 
 tasks.register('unpackB', Copy) {
     from zipTree("src/main/resources/${versionB}/com.kms.katalon.core.webui/com.kms.katalon.core.webui-sources.jar")
-    into layout.buildDirectory.dir("${workdir}/source/${versionB}")
+    into layout.buildDirectory.dir("source/${versionB}")
 }
 
 tasks.register("compareVersions", com.kazurayam.dircomp.CompareDirectoriesTask) {
-    dirA = layout.buildDirectory.dir("${workdir}/source/${versionA}")
-    dirB = layout.buildDirectory.dir("${workdir}/source/${versionB}")
+    dirA = layout.buildDirectory.dir("source/${versionA}")
+    dirB = layout.buildDirectory.dir("source/${versionB}")
     outputFile = layout.buildDirectory.file("${workdir}/${versionA}-${versionB}.json")
     diffDir = layout.buildDirectory.dir("${workdir}/diff")
 }
+
+compareVersions.dependsOn unpackA, unpackB
 
 tasks.register("makeZip", Zip) {
     from layout.buildDirectory.dir("${workdir}")
@@ -32,3 +34,5 @@ tasks.register("makeZip", Zip) {
     archiveFileName = "KatalonStudio_versions_diff-${versionA}-${versionB}.zip"
     destinationDirectory = layout.buildDirectory
 }
+
+makeZip.dependsOn compareVersions
